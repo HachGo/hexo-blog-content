@@ -1,0 +1,21 @@
+# 文件路径: HachGo/blog-content/.github/workflows/trigger.yml
+#
+name: Trigger Hexo Source Build
+
+on:
+  push:
+    branches:
+      - main  # 只有当主分支有内容更新时才触发
+
+jobs:
+  trigger-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send dispatch to HachGo/hexo-source
+        run: |
+          # 使用 PAT 认证，向 Repo B 发送 repository_dispatch 事件
+          curl -X POST -u "${{ github.actor }}:${{ secrets.REPO_B_PAT }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: application/json" \
+            https://api.github.com/repos/HachGo/hexo-source/dispatches \
+            --data '{"event_type": "docs-updated"}'
