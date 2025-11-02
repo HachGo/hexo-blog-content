@@ -1,20 +1,28 @@
-# 文件路径: HachGo/blog-content/.github/workflows/trigger.yml
-#
+# 文件路径: HachGo/hexo-blog-content/.github/workflows/trigger.yml
+
 name: Trigger Hexo Source Build
 
 on:
   push:
     branches:
-      - main  # 只有当主分支有内容更新时才触发
+      - main # 只有当主分支有内容更新时才触发
 
 jobs:
   trigger-deploy:
     runs-on: ubuntu-latest
     steps:
+      # 步骤 1: 必须先 Checkout 代码，以正确设置 Git/GitHub 上下文和权限
+      # 这不是必须的，但可以帮助确保所有环境变量正确加载，并避免某些 CI 环境的认证错误。
+      - name: Checkout Repository (For Context)
+        uses: actions/checkout@v4
+
+      # 步骤 2: 发送 dispatch 信号
       - name: Send dispatch to HachGo/hexo-source
         run: |
-          # 使用 PAT 认证，向 Repo B 发送 repository_dispatch 事件
-          curl -X POST -u "${{ github.actor }}:${{ secrets.REPO_B_PAT }}" \
+          # 使用 Authorization: Bearer 头进行认证
+          # PAT 必须具有 repo 权限
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.REPO_B_PAT }}" \
             -H "Accept: application/vnd.github.v3+json" \
             -H "Content-Type: application/json" \
             https://api.github.com/repos/HachGo/hexo-source/dispatches \
